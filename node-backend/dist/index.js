@@ -41,7 +41,7 @@ const openai = new openai_1.default({
     apiKey: process.env.OPENAI_API_KEY,
 });
 const app = (0, express_1.default)();
-const port = 3000;
+const port = 3001;
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -50,6 +50,7 @@ app.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const completion = yield openai.chat.completions.create({
         messages: [{ role: "system", content: `${message}` }],
         model: "gpt-3.5-turbo",
+        max_tokens: 20
     });
     res.json({
         completion: completion.choices[0].message

@@ -7,15 +7,21 @@ interface GPTResponse {
 
 }
 interface Chat {
-  title: string[],
+  title: string,
   role: string,
   content: string
 }
 export default function Home() {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState<string | null>('');
   const [message, setMessage] = useState<GPTResponse | null>(null);
-  const [currentTitle, setCurrentTitle] = useState<string[]>([])
+  const [currentTitle, setCurrentTitle] = useState<string | null>()
   const [previousChats, setPreviousChats] = useState<Chat[]>([])
+
+  const createNewchat = () => {
+    setMessage(null)
+    setValue(null)
+    setCurrentTitle(null)
+  }
 
   const handleSubmit = () => {
     fetch('http://localhost:3001/', {
@@ -39,8 +45,8 @@ export default function Home() {
       });
   };
   useEffect(() => {
-    if (currentTitle.length === 0 && message && value) {
-      setCurrentTitle([value]);
+    if (!currentTitle && message && value) {
+      setCurrentTitle(value);
     }
     if (currentTitle && message && value) {
       setPreviousChats(prevChats => (
@@ -65,28 +71,27 @@ export default function Home() {
   return (
     <div className="flex h-screen">
       {/* Sidebar Section */}
-      <div className="w-1/5 bg-black p-4 text-white h-screen flex flex-col flex-start">
-        <button className="border text-white px-8 py-2 ml-2 rounded">+New Chat</button>
+      <div className="w-1/5 bg-black p-4 text-white h-screen flex flex-col flex-start ">
+        <button className="border text-white px-8 py-2 ml-2 rounded" onClick={createNewchat}>+New Chat</button>
+        {/* {currentTitle.map(title => <li className="list-none flex justify-center text-lg font-bold mt-3">{title}</li>)} */}
       </div>
 
       {/* Main Section */}
-      <div className="w-4/5 p-4 bg-gray-900 h-screen flex flex-col justify-end">
+
+      <div className="w-4/5 p-4 bg-gray-900 h-screen flex flex-col flex-grow">
         {/* List Item Section */}
-        {previousChats.map(chat => <div className=" h-screen ">
-          <div className="flex flex-row items-start gap-5 mb-4 mx-10 p-4 bg-gray-700 text-white rounded-lg">
-            <p className="text-lg font-bold px-2 py-0.5 bg-gray-600 rounded align-center">{chat?.role}</p>
-            <p className="text-lg  ">
-              {chat?.content}
-            </p>
+        {previousChats.map(chat => (
+          <div className="mb-4 mx-10 p-4 bg-gray-700 text-white rounded-lg">
+            <div className="flex flex-row items-start gap-5">
+              <p className="text-lg font-bold px-2 py-0.5 bg-gray-600 rounded align-center">{chat?.role}</p>
+              <p className="text-lg">{chat?.content}</p>
+            </div>
           </div>
-        </div>)}
-
-
+        ))}
 
         {/* Input and Button Section */}
-        <div className="flex items-center justify-center mb-4">
+        <div className="flex items-center justify-center mb-4 mt-auto">
           <input
-            value={value}
             type="text"
             className="border border-gray-300 rounded-lg p-4 w-2/4 bg-gray-900 text-white focus:outline-none"
             placeholder="Message chatGPT ..."
@@ -96,12 +101,8 @@ export default function Home() {
             {">"}
           </button>
         </div>
-
-        {/* Footer Section */}
-        <div className="flex justify-center text-white text-sm">
-          ChatGPT can make mistakes. Consider checking important information.
-        </div>
       </div>
+
 
     </div>
   );
