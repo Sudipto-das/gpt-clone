@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 
 interface GPTResponse {
   role: string;
@@ -12,14 +12,14 @@ interface Chat {
   content: string
 }
 export default function Home() {
-  const [value, setValue] = useState<string | null>('');
+  const [value, setValue] = useState<string>('');
   const [message, setMessage] = useState<GPTResponse | null>(null);
   const [currentTitle, setCurrentTitle] = useState<string | null>()
   const [previousChats, setPreviousChats] = useState<Chat[]>([])
 
   const createNewchat = () => {
     setMessage(null)
-    setValue(null)
+    setValue('')
     setCurrentTitle(null)
   }
 
@@ -38,12 +38,18 @@ export default function Home() {
         // Assuming 'data' has the expected structure
         console.log(data.completion)
         setMessage(data.completion);
+        
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
         // Handle errors as needed
       });
   };
+  const handleClick = (uniqueTitle: SetStateAction<string | null | undefined>) =>{
+      setMessage(null)
+      setValue('')
+      setCurrentTitle(uniqueTitle)
+  }
   useEffect(() => {
     if (!currentTitle && message && value) {
       setCurrentTitle(value);
@@ -66,21 +72,22 @@ export default function Home() {
 
   }, [message, currentTitle])
 
-  console.log(currentTitle)
-  console.log(previousChats)
+  const currentChats = previousChats.filter(prevChat=>prevChat.title === currentTitle)
+  const uniqueTitles = Array.from(new Set(previousChats.map(prevChat=>prevChat.title)))
+
   return (
     <div className="flex h-screen">
       {/* Sidebar Section */}
       <div className="w-1/5 bg-black p-4 text-white h-screen flex flex-col flex-start ">
         <button className="border text-white px-8 py-2 ml-2 rounded" onClick={createNewchat}>+New Chat</button>
-        {/* {currentTitle.map(title => <li className="list-none flex justify-center text-lg font-bold mt-3">{title}</li>)} */}
+        {uniqueTitles?.map(uniqueTitle => <li className="list-none flex justify-center text-lg font-bold mt-3 cursor-pointer" onClick={()=>handleClick(uniqueTitle)}>{uniqueTitle}</li>)}
       </div>
 
       {/* Main Section */}
 
       <div className="w-4/5 p-4 bg-gray-900 h-screen flex flex-col flex-grow">
         {/* List Item Section */}
-        {previousChats.map(chat => (
+        {currentChats.map(chat => (
           <div className="mb-4 mx-10 p-4 bg-gray-700 text-white rounded-lg">
             <div className="flex flex-row items-start gap-5">
               <p className="text-lg font-bold px-2 py-0.5 bg-gray-600 rounded align-center">{chat?.role}</p>
@@ -92,6 +99,7 @@ export default function Home() {
         {/* Input and Button Section */}
         <div className="flex items-center justify-center mb-4 mt-auto">
           <input
+            value={value}
             type="text"
             className="border border-gray-300 rounded-lg p-4 w-2/4 bg-gray-900 text-white focus:outline-none"
             placeholder="Message chatGPT ..."
